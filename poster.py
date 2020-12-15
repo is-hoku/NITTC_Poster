@@ -1,116 +1,13 @@
-# import cv2
-# import numpy as np
-#
-#
-# def make_pyramid(gray):
-#     pyramid = [gray]
-#     H, W = gray.shape
-#
-#     for i in range(1, 6):
-#         a = 2. ** i
-#
-#         p = cv2.resize(gray, (int(W/a), int(H/a)), interpolation=cv2.INTER_LINEAR)
-#         p = cv2.resize(p, (W, H), interpolation=cv2.INTER_LINEAR)
-#
-#         pyramid.append(p.astype(np.float32))
-#
-#     return pyramid
-#
-#
-# def saliency_map(pyramid):
-#     H, W = pyramid[0].shape
-#     out = np.zeros((H, W), dtype=np.float32)
-#
-#     out += np.abs(pyramid[0] - pyramid[1])
-#     out += np.abs(pyramid[0] - pyramid[3])
-#     out += np.abs(pyramid[0] - pyramid[5])
-#     out += np.abs(pyramid[1] - pyramid[4])
-#     out += np.abs(pyramid[2] - pyramid[3])
-#     out += np.abs(pyramid[3] - pyramid[5])
-#
-#     out = out / out.max() * 255
-#
-#     return out
-#
-#
-# def seam_carving(img, gray, reh, rew):
-#     H, W = gray.shape
-#     reh = H-reh
-#     x, y = 0, 0
-#     # seam = gray
-#     row = 255 * H + 1
-#     line = 255 * W + 1
-#     for h in range(reh):
-#         for i in range(W):
-#             cnt = 0
-#             for y in range(H):
-#                 min_idx = np.argmin([gray[y, max(x-1, 0)], gray[y, x], gray[y, min(x+1, W)]])
-#                 min_idx -= 1
-#                 x = min_idx
-#                 cnt += gray[y, x]
-#             if cnt < row:
-#                 row = cnt
-#                 row_y = y
-#         img = np.delete(img, row_y, 1)
-#         gray = np.delete(gray, row_y, 1)
-#         print('1 row deleted')
-#
-#     H, W = gray.shape
-#     print('H, W', H, W)
-#     rew = W-rew
-#     x, y = 0, 0
-#     for w in range(rew):
-#         for i in range(H):
-#             cnt = 0
-#             for x in range(W):
-#                 min_idx = np.argmin([gray[max(y-1, 0), x], gray[y, x], gray[min(y+1, H), x]])
-#                 min_idx -= 1
-#                 y = min_idx
-#                 cnt += gray[y, x]
-#             if cnt < line:
-#                 line = cnt
-#                 line_x = x
-#         img = np.delete(img, line_x, 1)
-#         gray = np.delete(gray, line_x, 1)
-#         print('1 line deleted')
-#
-#     seam, seam_gray = img, gray
-#     return seam, seam_gray
-#
-# imgnm = input('Enter the image name!')
-# reh, rew = map(int,input('Enter the modified image size!(height, width)').split())
-#
-# # Create SaliencyMap
-# img = cv2.imread('./img/'+imgnm)
-# gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-# pyramid = make_pyramid(gray)
-# out = saliency_map(pyramid)
-# out = out.astype(np.uint8)
-# cv2.imwrite("./img/map.png", out)
-#
-# # Seam Carving
-# gray = cv2.imread("./img/map.png", 0)
-# # img = cv2.imread("./img/glider.jpeg")
-# # gray = cv2.imread("./SaliencyMap/seam_gray.png", 0)
-# # img = cv2.imread("./SaliencyMap/seam.png")
-#
-# seam, seam_gray = seam_carving(img, gray, reh, rew)
-#
-# cv2.imwrite("./img/seam.png", seam)
-# cv2.imwrite("./img/seam_gray.png", seam_gray)
-
-
 import cv2
 from skimage import data, draw
 from skimage import transform, util
 import numpy as np
 from skimage import filters, color
-from matplotlib import pyplot as plt
 
 
 # hl_color = np.array([0, 1, 0])
-imgnm = input('Enter the image name! >> ')
-img = cv2.imread('./img/'+imgnm)
+# imgnm = input('Enter the image name! >> ')
+# img = cv2.imread('./img/'+imgnm)
 # img = util.img_as_float(img)
 # print(img)
 # eimg = filters.sobel(color.rgb2gray(img))
@@ -143,12 +40,28 @@ class SeamCarving:
 
     def work(self):
         h, w, _ = img.shape
-        out = seam_carving.resize(
-            img, (w - 2, h),
-            energy_mode='backward',   # Choose from {backward, forward}
-            order='width-first',  # Choose from {width-first, height-first}
-            keep_mask=None
-        )
+
+        if h > w:
+            rew = w
+            reh = int(w*1.414)
+            if reh > h:
+                rew = h//1.414
+                reh = h
+        else:
+            reh = h
+            rew = h//1.414
+            if rew > w:
+                reh = int(w*1.414)
+                rew = w
+        print('height, width = ', h, w, '=>', reh, rew)
+        # out = seam_carving.resize(
+        #     img, (rew, reh),
+        #     energy_mode='backward',   # Choose from {backward, forward}
+        #     order='width-first',  # Choose from {width-first, height-first}
+        #     keep_mask=None
+        # )
+        out = self.kuwahara(img)
+        out = self.draw_texts(out, texts)
         self.work_ended = True
         cv2.imwrite("./img/seam.png", out)
 
@@ -163,10 +76,45 @@ class SeamCarving:
         print("done!" + '\033[1D')
 
 
-if __name__ == '__main__':
-    seam = SeamCarving()
-    seam.processing()
+    def draw_texts(self, img, texts, x=10, y=0, r=0, g=0, b=0, font_scale=0.7, thickness=2):
+        h, w, _ = img.shape
+        offset_x = x  # 左下の座標
+        initial_y = y
+        dy = int(img.shape[1] / 15)
+        color = (g, b, r)  # black
 
+        texts = [texts] if type(texts) == str else texts
+
+        for i, text in enumerate(texts):
+            offset_y = initial_y + (i+1)*dy
+            cv2.putText(img, text, (offset_x, offset_y), cv2.FONT_HERSHEY_SIMPLEX,
+                        font_scale, color, thickness, cv2.LINE_AA)
+        return img
+
+
+    def kuwahara(self, img, r=30, resize=False, rate=0.5): #元画像、正方形領域の一辺、リサイズするか、リサイズする場合の比率
+        h, w, _ = img.shape
+        if resize:img=cv2.resize(img,(int(w*rate),int(h*rate)));h,w,_=img.shape
+        img=np.pad(img,((r,r),(r,r),(0,0)),"edge")
+        ave,var=cv2.integral2(img)
+        ave=(ave[:-r-1,:-r-1]+ave[r+1:,r+1:]-ave[r+1:,:-r-1]-ave[:-r-1,r+1:])/(r+1)**2 #平均値の一括計算
+        var=((var[:-r-1,:-r-1]+var[r+1:,r+1:]-var[r+1:,:-r-1]-var[:-r-1,r+1:])/(r+1)**2-ave**2).sum(axis=2) #分散の一括計算
+
+    #--以下修正部分--
+        def filt(i,j):
+            return np.array([ave[i,j],ave[i+r,j],ave[i,j+r],ave[i+r,j+r]])[(np.array([var[i,j],var[i+r,j],var[i,j+r],var[i+r,j+r]]).argmin(axis=0).flatten(),j.flatten(),i.flatten())].reshape(w,h,_).transpose(1,0,2)
+        filtered_pic = filt(*np.meshgrid(np.arange(h),np.arange(w))).astype(img.dtype) #色の決定
+        return filtered_pic
+
+
+
+if __name__ == '__main__':
+    imgnm = input('Enter the image name! >> ')
+    texts = input('Enter a catchphrase! >> ').split()
+    print(type(texts), texts)
+    img = cv2.imread('./img/'+imgnm)
+    out = SeamCarving()
+    out.processing()
 
 
 # out = transform.seam_carve(img, eimg, 'vertical', 200)
