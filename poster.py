@@ -6,19 +6,6 @@ from skimage import filters, color
 from PIL import ImageFont, ImageDraw, Image
 
 
-# hl_color = np.array([0, 1, 0])
-# imgnm = input('Enter the image name! >> ')
-# img = cv2.imread('./img/'+imgnm)
-# img = util.img_as_float(img)
-# print(img)
-# eimg = filters.sobel(color.rgb2gray(img))
-# print(eimg)
-
-# resized = transform.resize(img, (img.shape[0], img.shape[1] - 200),
-#                            mode='reflect')
-
-
-
 import seam_carving, sys, time, threading
 
 class SeamCarving:
@@ -29,13 +16,9 @@ class SeamCarving:
     def spinner(self):
         while not self.work_ended:
             print('|' + '\033[1D', end='', file=sys.stderr)
-            # time.sleep(0.01)
             print('/' + '\033[1D', end='', file=sys.stderr)
-            # time.sleep(0.01)
             print('-' + '\033[1D', end='', file=sys.stderr)
-            # time.sleep(0.01)
             print('\\' + '\033[1D', end='', file=sys.stderr)
-            # time.sleep(0.01)
         print(' ' + '\033[1D')
 
 
@@ -55,16 +38,16 @@ class SeamCarving:
                 reh = int(w*1.414)
                 rew = w
         print('height, width = ', h, w, '=>', reh, rew)
-        # out = seam_carving.resize(
-        #     img, (rew, reh),
-        #     energy_mode='backward',   # Choose from {backward, forward}
-        #     order='width-first',  # Choose from {width-first, height-first}
-        #     keep_mask=None
-        # )
+        out = seam_carving.resize(
+            img, (rew, reh),
+            energy_mode='backward',   # Choose from {backward, forward}
+            order='width-first',  # Choose from {width-first, height-first}
+            keep_mask=None
+        )
         out = self.kuwahara(img)
         out = self.puttext(out, texts, point, font_path, font_size, color)
         self.work_ended = True
-        cv2.imwrite("./img/seam.png", out)
+        cv2.imwrite("./img/poster.png", out)
 
 
     def processing(self):
@@ -123,6 +106,3 @@ if __name__ == '__main__':
     img = cv2.imread('./img/'+imgnm)
     out = SeamCarving()
     out.processing()
-
-
-# out = transform.seam_carve(img, eimg, 'vertical', 200)
