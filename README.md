@@ -18,3 +18,4 @@ In other words, this is a CUI tool for those who want to have an easy time with 
 - The image will be resized to 1:√2.  
 - If the image size is large, it may take some time to resize. If the process does not finish, please change the image to a vertical one or roughly resize it in advance using GIMP, etc.  
 - If you want to enter multiple lines of text, please leave a space (half-width).
+- When inputting coordinates and colors, please separate elements by spaces (half-width characters).
