@@ -44,7 +44,7 @@ class SeamCarving:
             order='width-first',  # Choose from {width-first, height-first}
             keep_mask=None
         )
-        out = self.kuwahara(img)
+        out = self.kuwahara(out)
         out = self.puttext(out, texts, point, font_path, font_size, color)
         self.work_ended = True
         cv2.imwrite("./img/poster.png", out)
@@ -70,7 +70,7 @@ class SeamCarving:
 
         draw = ImageDraw.Draw(pil_image)
         dx = 0
-        dy = (h//3)//len(texts)
+        dy = (h//4)//len(texts)
         for i, text in enumerate(texts):
             repoint = (point[0]+dx, point[1]+i*dy)
             draw.text(repoint, text, fill=color, font=font)
@@ -97,12 +97,12 @@ class SeamCarving:
 
 
 if __name__ == '__main__':
-    imgnm = input('Enter the relative path of the image under ./img! (ex. nittc.jpg)>> ')
+    imgnm = input('Enter the relative path of the image under ./img! (ex. /nittc.jpg)>> ')
     texts = input('Enter a catchphrase! >> ').split()
-    font_size = int(input('Enter a font size as integer type! (rec = 100) >> '))
+    font_size = int(input('Enter a font size as integer type! (rec = 200) >> '))
     font_path = input('Enter the relative path of the font under ./font (ex. /IPAexfont00401/ipaexm.ttf)>> ')
-    point = tuple(map(int, input('Enter the coordinates for your catchphrase! (rec = (30, 30)) >> ').split()))
+    point = tuple(map(int, input('Enter the coordinates for your catchphrase! (rec = (100, 100)) >> ').split()))
     color = tuple(map(int, input('Enter a color for the text! (r, g, b) >> ').split()))
-    img = cv2.imread('./img/'+imgnm)
+    img = cv2.imread('./img'+imgnm)
     out = SeamCarving()
     out.processing()
