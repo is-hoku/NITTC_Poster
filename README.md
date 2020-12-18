@@ -14,6 +14,27 @@ In other words, this is a CUI tool for those who want to have an easy time with 
 4) Enter the requested information in the CUI.
 5) The poster will be created.
 
+# :camera: Example
+**input image**  
+<img src="/img/nittc.png" width="320px">  
+**cmd**  
+```
+$ python poster.py
+Enter the relative path of the image under ./img! (ex. /nittc.jpg)>> /nittc0.png
+Enter a catchphrase! >> 我らが母校 豊田高専
+Enter a font size as integer type! (rec = 200) >> 250 
+Enter the relative path of the font under ./font (ex. /IPAexfont00401/ipaexm.ttf)>> /2020_sushiki1.4/sushikifont1.4.ttf
+Enter the coordinates for your catchphrase! (rec = (100, 100)) >> 100 100
+Enter a color for the text! (r, g, b) >> 25 25 112
+height, width =  3007 2126 => 3006 2126
+ 
+done!
+
+```
+**output image**  
+<img src="/img/poster.png" width="320px">  
+
+
 ## :warning: Notes
 - The image will be resized to 1:√2.  
 - If the image size is large, it may take some time to resize. If the process does not finish, please change the image to a vertical one or roughly resize it in advance using GIMP, etc.  
