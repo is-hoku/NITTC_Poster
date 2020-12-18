@@ -15,7 +15,7 @@ In other words, this is a CUI tool for those who want to have an easy time with 
 5) The poster will be created.
 
 # :camera: Example
-**input image**  
+**input image(4032x3024)**  
 <img src="/img/nittc.png" width="320px">  
 **cmd**  
 ```
@@ -31,7 +31,7 @@ height, width =  3007 2126 => 3006 2126
 done!
 
 ```
-**output image**  
+**output image(2126x3006)**  
 <img src="/img/poster.png" width="320px">  
 
 
